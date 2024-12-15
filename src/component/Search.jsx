@@ -29,8 +29,9 @@ const Search = () => {
   async function fetchDishes() {
     try {
       const response = await axios.get(
-        `/api/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117`
+        'https://www.swiggy.com/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117`
       );
+      // `/api/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117`
 
       let finalData =
         (response.data.data?.cards[1]?.groupedCard?.cardGroupMap?.DISH?.cards).filter(
@@ -44,8 +45,9 @@ const Search = () => {
   async function fetchRestaurantData() {
     try {
       const response = await axios.get(
-        `/api/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117&selectedPLTab=RESTAURANT`
+       'https://www.swiggy.com/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117&selectedPLTab=RESTAURANT`
       );
+      //   `/api/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117&selectedPLTab=RESTAURANT`
 
       //   console.log(response.data.data?.cards[0]?.groupedCard?.cardGroupMap?.RESTAURANT?.cards).filter(data=>data?.card?.card?.info);
       const finalData =
