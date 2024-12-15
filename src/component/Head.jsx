@@ -109,8 +109,9 @@ const Head = () => {
     dispatch(setPopupVisibility(false));
     try {
       const res = await axios.get(
-        `/api/dapi/misc/address-recommend?place_id=${id}`
+        'https://www.swiggy.com/dapi/misc/address-recommend?place_id=${id}`
       );
+      //  `/api/dapi/misc/address-recommend?place_id=${id}`
       setCoord({
         lat: res.data.data[0].geometry.location.lat,
         lng: res.data.data[0].geometry.location.lng,
