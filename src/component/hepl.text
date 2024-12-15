@@ -1,0 +1,1300 @@
+import React, { useState, useEffect, useContext } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { FaLeaf } from "react-icons/fa"; // For Veg Icon
+import { GiChickenLeg } from "react-icons/gi"; // For Non-Veg Icon
+import { CartContext } from "../App";
+
+const MenuData = ({ menuData }) => {
+  // State for handling popup visibility and message
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  
+  // Access the cart context (useContext)
+  const { cartData, setCartData } = useContext(CartContext);
+
+  // Function to handle "Add to Cart"
+  const handleAddToCart = (item, restaurantId) => {
+    setCartData((prevCart) => {
+      // Check if the cart already contains items from a different restaurant
+      if (prevCart.length > 0 && prevCart[0].restaurantId !== restaurantId) {
+        // Clear the previous restaurant's items and add the new restaurant's item
+        return [{ ...item, quantity: 1, restaurantId }];
+      }
+
+      // Otherwise, just add the item or update the quantity if it already exists
+      const itemExists = prevCart.find((cartItem) => cartItem.id === item.id);
+      if (itemExists) {
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        );
+      }
+
+      // Add the new item to the cart
+      return [...prevCart, { ...item, quantity: 1, restaurantId }];
+    });
+
+    // Show the popup with the item name
+    setAlertMessage(`${item.name} has been added to your cart!`);
+    setIsPopupVisible(true);
+
+    // Hide the popup after 2 seconds
+    setTimeout(() => {
+      setIsPopupVisible(false);
+    }, 1000);
+  };
+
+  return (
+    <div>
+      {/* Alert Popup */}
+      {isPopupVisible && (
+        <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-500 text-white px-6 py-4 rounded-lg shadow-md z-50">
+          <div>{alertMessage}</div>
+          <button
+            className="mt-4 bg-white text-slate-400 px-6 py-2 rounded-lg"
+            onClick={() => setIsPopupVisible(false)}
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      <Accordion type="single" collapsible className="w-full">
+        {menuData.map(
+          ({
+            card: {
+              card: { itemCards, title },
+            },
+          }) => (
+            <AccordionItem key={title} value={title}>
+              {/* Accordion Header */}
+              <AccordionTrigger className="text-lg font-bold">
+                {title} ({itemCards.length})
+              </AccordionTrigger>
+
+              {/* Accordion Content */}
+              <AccordionContent>
+                <div className="pl-4">
+                  {itemCards.map(({ card: { info } }, index) => {
+                    const {
+                      id,
+                      name,
+                      description,
+                      finalPrice,
+                      price,
+                      defaultPrice,
+                      isVeg,
+                      ribbon,
+                      imageId,
+                    } = info;
+
+                    // Render each item card
+                    return (
+                      <div
+                        key={index}
+                        className="border-b py-4 flex items-center justify-between text-slate-700 relative gap-6"
+                      >
+                        {/* Details Section */}
+                        <div className="flex-1">
+                          {/* Name and Ribbon */}
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xl font-semibold">{name}</h3>
+                            {ribbon?.text && (
+                              <span
+                                style={{
+                                  backgroundColor: ribbon.topBackgroundColor,
+                                  color: ribbon.textColor,
+                                }}
+                                className="px-3 py-1 rounded text-sm"
+                              >
+                                {ribbon.text}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Veg/Non-Veg Icon */}
+                          <div className="absolute top-0 left-1 flex items-center gap-1 bg-opacity-80 px-2 py-1 rounded-full shadow-sm ">
+                            {isVeg ? (
+                              <FaLeaf className="text-green-600" size={18} />
+                            ) : (
+                              <GiChickenLeg
+                                className="text-red-600"
+                                size={18}
+                              />
+                            )}
+                            <span className="text-sm font-semibold text-gray-800">
+                              {isVeg ? "Veg" : "Non-Veg"}
+                            </span>
+                          </div>
+
+                          {/* Description */}
+                          <p className="text-sm text-gray-500 mt-1">
+                            {description}
+                          </p>
+
+                          {/* Price Section */}
+                          <div className="flex items-center gap-2 mt-2">
+                            {/* Handle different price cases */}
+                            {price || finalPrice || defaultPrice ? (
+                              <>
+                                {/* Case 1: Both price and finalPrice available */}
+                                {price && finalPrice && (
+                                  <>
+                                    <span className="text-sm line-through text-gray-500">
+                                      ₹{price / 100}
+                                    </span>
+                                    <span className="text-lg font-bold text-green-600">
+                                      ₹{finalPrice / 100}
+                                    </span>
+                                  </>
+                                )}
+
+                                {/* Case 2: Only price is available */}
+                                {price && !finalPrice && (
+                                  <span className="text-lg font-bold text-green-600">
+                                    ₹{price / 100}
+                                  </span>
+                                )}
+
+                                {/* Case 3: Only finalPrice is available */}
+                                {!price && finalPrice && (
+                                  <span className="text-lg font-bold text-green-600">
+                                    ₹{finalPrice / 100}
+                                  </span>
+                                )}
+
+                                {/* Case 4: Fallback to defaultPrice */}
+                                {!price && !finalPrice && defaultPrice && (
+                                  <span className="text-lg font-bold text-green-600">
+                                    ₹{defaultPrice / 100}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-gray-500">
+                                Price unavailable
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Image Section */}
+                        <div className="relative w-40 h-40">
+                          {/* Image */}
+                          <img
+                            src={
+                              imageId
+                                ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/${imageId}`
+                                : "https://via.placeholder.com/150"
+                            }
+                            alt={name}
+                            className="w-full h-full rounded-lg object-cover"
+                          />
+
+                          {/* Add Button */}
+                          <button
+                            className="absolute left-1/2 bottom-[13px] transform -translate-x-1/2 translate-y-1/2 bg-white text-green-600 px-10 py-3 text-base font-semibold rounded-full shadow-md border border-green-600 hover:bg-green-100 transition"
+                            onClick={() => {
+                              handleAddToCart(
+                                {
+                                  id,
+                                  name,
+                                  price: finalPrice || price || defaultPrice,
+                                  imageId,
+                                  isVeg,
+                                },
+                                title // Passing restaurant title (or restaurantId)
+                              );
+                            }}
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )
+        )}
+      </Accordion>
+    </div>
+  );
+};
+
+export default MenuData;
+
+
+
+
+
+import React from "react";
+import { IoStarSharp } from "react-icons/io5";
+import { FaArrowRight } from "react-icons/fa6";
+import { FaLeaf } from "react-icons/fa"; // For Veg Icon
+import { GiChickenLeg } from "react-icons/gi"; // For Non-Veg Icon
+import { MdOutlineCurrencyRupee } from "react-icons/md";
+import AddToCartBtn from "./AddToCartBtn";
+
+function Dishes({
+  data: {
+    card: {
+      card: {
+        info: { imageId = "", name, price, isVeg = 0 },
+        restaurant: {
+          info: {
+            id,
+            name: resName,
+            avgRating,
+            sla: { slaString },
+          },
+        },
+      },
+    },
+  },
+}) {
+  // console.log(resName)
+  return (
+    <div className="bg-white rounded-2xl p-4 m-4">
+      <div className="flex justify-between text-sm opacity-50">
+        <div>
+          <p className="font-bold">By {resName}</p>
+          <p className="my-2">
+            {" "}
+            <IoStarSharp /> {avgRating} . {slaString}
+          </p>
+        </div>
+        <FaArrowRight className="text-2xl" />
+      </div>
+      <hr className="border-dotted" />
+      <div className="my-3 max-w-fit flex justify-between">
+        <div className="w-[50%]">
+          <div>
+            {isVeg ? (
+              <FaLeaf className="text-green-600" />
+            ) : (
+              <GiChickenLeg className="text-red-600" />
+            )}
+          </div>
+          <p className=" font-medium ">{name}</p>
+          <p className="">
+            {/* <i className="fi fi-bs-indian-rupee-sign text-sm pt-1 inline-block"></i> */}
+            <MdOutlineCurrencyRupee className="  inline-block" />
+            {price / 100}
+          </p>
+          <button className="px-4 py-1 w-max rounded-3xl border">
+            More Details
+          </button>
+        </div>
+
+        <div className="w-[40%] md:w-[40%] relative h-full">
+          <img
+            className="rounded-xl object-cover aspect-square"
+            src={
+              "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/" +
+              imageId
+            }
+            alt=""
+          />
+
+          <AddToCartBtn
+            item={{
+              id,
+              name,
+              price: finalPrice || price || defaultPrice,
+              imageId,
+              isVeg,
+            }}
+            restaurantId={title}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Dishes;
+
+
+
+
+
+
+import React, { useContext, useState } from "react";
+import { CartContext } from "../App";
+
+const AddToCartBtn = ({item, restaurantId}) => {
+
+
+     // State for handling popup visibility and message
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  
+  // Access the cart context (useContext)
+  const { cartData, setCartData } = useContext(CartContext);
+
+
+    const handleAddToCart = () => {
+        setCartData((prevCart) => {
+          // Check if the cart already contains items from a different restaurant
+          if (prevCart.length > 0 && prevCart[0].restaurantId !== restaurantId) {
+            // Clear the previous restaurant's items and add the new restaurant's item
+            return [{ ...item, quantity: 1, restaurantId }];
+          }
+    
+          // Otherwise, just add the item or update the quantity if it already exists
+          const itemExists = prevCart.find((cartItem) => cartItem.id === item.id);
+          if (itemExists) {
+            return prevCart.map((cartItem) =>
+              cartItem.id === item.id
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            );
+          }
+    
+          // Add the new item to the cart
+          return [...prevCart, { ...item, quantity: 1, restaurantId }];
+        });
+    
+        // Show the popup with the item name
+        setAlertMessage(`${item.name} has been added to your cart!`);
+        setIsPopupVisible(true);
+    
+        // Hide the popup after 2 seconds
+        setTimeout(() => {
+          setIsPopupVisible(false);
+        }, 1000);
+      };
+  return (
+    <div>
+        {/* Alert Popup */}
+      {isPopupVisible && (
+        <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-500 text-white px-6 py-4 rounded-lg shadow-md z-50">
+          <div>{alertMessage}</div>
+          <button
+            className="mt-4 bg-white text-slate-400 px-6 py-2 rounded-lg"
+            onClick={() => setIsPopupVisible(false)}
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      <button
+        className="absolute left-1/2 bottom-[13px] transform -translate-x-1/2 translate-y-1/2 bg-white text-green-600 px-10 py-3 text-base font-semibold rounded-full shadow-md border border-green-600 hover:bg-green-100 transition"
+        onClick={handleAddToCart}
+
+      >
+        Add
+      </button>
+    </div>
+  );
+};
+
+export default AddToCartBtn;
+
+
+
+
+
+
+
+import React, { useContext, useState } from "react";
+import { CartContext } from "../App";
+import { FaLeaf } from "react-icons/fa"; // Veg Icon
+import { GiChickenLeg } from "react-icons/gi"; // Non-Veg Icon
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux"; // Import useSelector
+import {toogleLogin} from "../utils/popupSlice";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import the toast styles
+import RazorpayButton from "./RazorpayButton";
+
+const Cart = () => {
+  const { cartData, setCartData } = useContext(CartContext);
+
+  // console.log(cartData);
+  
+  // Handle quantity increment
+  const incrementQuantity = (id) => {
+    setCartData((prevCart) =>
+      prevCart.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  // Handle quantity decrement
+  const decrementQuantity = (id) => {
+    setCartData(
+      (prevCart) =>
+        prevCart
+          .map((item) =>
+            item.id === id && item.quantity > 1
+              ? { ...item, quantity: item.quantity - 1 }
+              : item
+          )
+          .filter((item) => item.quantity > 0) // Remove if quantity is 0
+    );
+  };
+
+  // Handle remove item from cart
+  const removeItem = (id) => {
+    setCartData((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
+
+  // Calculate total price
+  const totalPrice = cartData.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+
+  // Calculate GST (5%)
+  const gstAmount = totalPrice * 0.05;
+
+  // Calculate the total price with GST
+  const totalWithGST = totalPrice + gstAmount;
+
+  // To navigate to the main page
+  const navigate = useNavigate();
+
+  const handleGoToMainPage = () => {
+    navigate('/'); // Navigate to the main page ("/")
+  };
+
+  const userData = useSelector((state) => state.authSlice.userData);
+  console.log(userData);
+
+  // Add null check for userData and photo
+  const userPhoto = userData?.photo;
+
+  const dispatch = useDispatch();
+  const nav = useNavigate();
+
+  function handlePlaceOrder() {
+    if (!userData) {
+      // console.error("Please log in first");
+      dispatch(toogleLogin(true));
+     
+      toast.warning("login krle bhai")
+      return;
+    }
+    // Add the order placement logic here
+    console.log("Order placed successfully!");
+    // alert()
+    toast.info("udhari nhi chlega bhai phle bta Rhe")
+    <RazorpayButton/>
+    // toast.success("Your order is on its way.", {
+               
+    //   autoClose: 3000,             
+    //   hideProgressBar: true,       // Hide the progress bar
+    //   style: {
+    //     fontSize: '18px',          
+    //     padding: '20px',           
+    //     backgroundColor: '#28a745', 
+    //     color: 'white',            // White text color
+    //     borderRadius: '8px',       // Rounded corners for the toast
+    //   },
+    // });
+    
+  }
+
+  return (
+    <div className="p-4 bg-gray-50 min-h-screen">
+      {/* Empty Cart Message */}
+      {cartData.length === 0 ? (
+        <div className="bg-white w-full">
+          <div className="flex items-center justify-center">
+            <img
+              src="/empty.png"
+              alt="empty"
+              style={{ width: '400px', height: '500px' }}
+            />
+          </div>
+
+          {/* Button to navigate to the main page */}
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleGoToMainPage}
+              className="bg-orange-600 text-white px-8 py-2 rounded-lg shadow-lg hover:bg-orange-700 transition"
+            >
+              See restaurant near you
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Cart Items */}
+          {cartData.map(
+            ({ id, name, price, quantity, imageId, isVeg }) => (
+              <div
+                key={id}
+                className="flex items-center bg-white p-4 rounded-lg shadow-md"
+              >
+                {/* Item Image */}
+                <img
+                  src={
+                    imageId
+                      ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/${imageId}`
+                      : "https://via.placeholder.com/100"
+                  }
+                  alt={name}
+                  className="w-20 h-20 rounded-lg object-cover"
+                />
+
+                {/* Item Details */}
+                <div className="ml-4 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold">{name}</h3>
+                    {isVeg ? (
+                      <FaLeaf className="text-green-600" size={16} />
+                    ) : (
+                      <GiChickenLeg className="text-red-600" size={16} />
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">₹{price / 100} each</p>
+                  <p className="text-sm font-bold mt-1">
+                    Total: ₹{(price * quantity) / 100}
+                  </p>
+                </div>
+
+                {/* Quantity Controls */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    className="bg-gray-200 text-gray-800 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition"
+                    onClick={() => decrementQuantity(id)}
+                  >
+                    -
+                  </button>
+                  <span className="text-lg font-bold">{quantity}</span>
+                  <button
+                    className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-green-700 transition"
+                    onClick={() => incrementQuantity(id)}
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Remove Item */}
+                <button
+                  className="ml-4 text-red-600 hover:text-red-800"
+                  onClick={() => removeItem(id)}
+                >
+                  Remove
+                </button>
+              </div>
+            )
+          )}
+
+          {/* Total Price Section */}
+          <div className="mt-6 text-right">
+            <h3 className="text-xl font-bold">Subtotal: ₹{totalPrice / 100}</h3>
+            <h3 className="text-lg text-gray-500">GST (5%): ₹{gstAmount / 100}</h3>
+            <h3 className="text-xl font-bold mt-4">Final Total: ₹{totalWithGST / 100}</h3>
+
+            <button 
+              onClick={handlePlaceOrder} 
+              className="bg-green-600 text-white px-6 py-2 mt-2 rounded-lg font-medium hover:bg-green-700 transition"
+            >
+              Proceed to Checkout
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Cart;
+
+
+
+
+
+
+
+import React, { useContext } from "react";
+import { CartContext } from "../App";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import the toast styles
+
+const AddToCartBtn = ({ item, restaurantId }) => {
+  // Access the cart context (useContext)
+  const { cartData, setCartData } = useContext(CartContext);
+
+  const handleAddToCart = () => {
+    setCartData((prevCart) => {
+      // Check if the cart already contains items from a different restaurant
+      if (prevCart.length > 0 && prevCart[0].restaurantId !== restaurantId) {
+        // Clear the previous restaurant's items and add the new restaurant's item
+        return [{ ...item, quantity: 1, restaurantId }];
+      }
+
+      // Otherwise, just add the item or update the quantity if it already exists
+      const itemExists = prevCart.find((cartItem) => cartItem.id === item.id);
+      if (itemExists) {
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        );
+      }
+
+      // Add the new item to the cart
+      return [...prevCart, { ...item, quantity: 1, restaurantId }];
+    });
+
+    // Show the toast notification with the item name
+    toast.success(`${item.name} has been added to your cart!`);
+  };
+
+  return (
+    <div>
+      <button
+        className="absolute left-1/2 bottom-[13px] transform -translate-x-1/2 translate-y-1/2 bg-white text-green-600 px-10 py-3 text-base font-semibold rounded-full shadow-md border border-green-600 hover:bg-green-100 transition"
+        onClick={handleAddToCart}
+      >
+        Add
+      </button>
+    </div>
+  );
+};
+
+export default AddToCartBtn;
+
+
+
+
+import React, { useState, useEffect } from 'react';
+
+const RazorpayButton = () => {
+  const [amount, setAmount] = useState(500); // Default amount is 500 INR
+  const [loading, setLoading] = useState(false); // To show a loading state
+
+  useEffect(() => {
+    // Ensure Razorpay is available when component mounts
+    if (!window.Razorpay) {
+      alert('Razorpay SDK not loaded');
+    }
+  }, []);
+
+  const handlePayment = async () => {
+    if (amount <= 0) {
+      alert('Amount should be greater than 0');
+      return;
+    }
+
+    setLoading(true);
+    const amountInPaisa = amount * 100; // Convert to paisa (1 INR = 100 paisa)
+
+    try {
+      // Send a request to your backend to create a Razorpay order
+      const response = await fetch('http://localhost:5002/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: amountInPaisa }),
+      });
+
+      const data = await response.json();
+
+      if (data.id) {
+        // Create a Razorpay instance and open the payment modal
+        const options = {
+          key: 'rzp_test_62lfJDM065Qw88', // Replace with your Razorpay key ID
+          amount: amountInPaisa,
+          currency: 'INR',
+          name: 'Your Company Name',
+          description: 'Test Transaction',
+          image: 'https://your-logo-url.com/logo.png',
+          order_id: data.id, // Razorpay order ID from backend
+          handler: function (response) {
+            alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
+          },
+          prefill: {
+            name: 'Ankit',
+            email: 'ankitkumar0410s@gmail.com.com',
+            contact: '7717723216',
+          },
+          theme: {
+            color: '#3399cc',
+          },
+        };
+
+        // Check if Razorpay is available before invoking
+        if (window.Razorpay) {
+          const razorpay = new window.Razorpay(options);
+          razorpay.open();
+        } else {
+          alert('Razorpay is not initialized');
+        }
+      } else {
+        alert('Payment creation failed');
+      }
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      alert('An error occurred while creating the payment');
+    } finally {
+      setLoading(false); // Stop the loading state
+    }
+  };
+
+  return (
+    // <div>
+    //   <input
+    //     type="number"
+    //     value={amount}
+    //     onChange={(e) => setAmount(e.target.value)}
+    //     min="1"
+    //     placeholder="Enter amount"
+    //     style={{ padding: '10px', marginBottom: '10px', width: '100px' }}
+    //   />
+    //   <button
+    //     onClick={handlePayment}
+    //     disabled={loading}
+    //     style={{
+    //       padding: '10px',
+    //       backgroundColor: '#3399cc',
+    //       color: 'white',
+    //       border: 'none',
+    //     }}
+    //   >
+    //     {loading ? 'Processing...' : 'Pay with Razorpay'}
+    //   </button>
+    // </div>
+    <div class="flex flex-col items-center justify-center space-y-4 p-4 bg-gray-50 rounded-lg shadow-md">
+  <input
+    type="number"
+    value={amount}
+    onChange={(e) => setAmount(e.target.value)}
+    min="1"
+    placeholder="Enter amount"
+    class="px-4 py-2 w-32 text-xl border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button
+    onClick={handlePayment}
+    disabled={loading}
+    class="w-32 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition duration-200"
+  >
+    {loading ? 'Processing...' : 'Pay with Razorpay'}
+  </button>
+</div>
+
+
+    
+
+  );
+};
+
+export default RazorpayButton;
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from 'react';
+
+const RazorpayButton = ({ amount }) => {  // Accept the amount prop
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!window.Razorpay) {
+      alert('Razorpay SDK not loaded');
+    }
+  }, []);
+
+  const handlePayment = async () => {
+    if (amount <= 0) {
+      alert('Amount should be greater than 0');
+      return;
+    }
+
+    setLoading(true);
+    
+    const amountInPaisa = amount ;
+
+    try {
+      // Send a request to your backend to create a Razorpay order
+      const response = await fetch('http://localhost:5002/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: amountInPaisa }),
+      });
+
+      const data = await response.json();
+
+      if (data.id) {
+        // Create a Razorpay instance and open the payment modal
+        const options = {
+          key: 'rzp_test_62lfJDM065Qw88', // Replace with your Razorpay key ID
+          amount: amountInPaisa,
+          currency: 'INR',
+          name: 'Your Company Name',
+          description: 'Test Transaction',
+          image: 'https://your-logo-url.com/logo.png',
+          order_id: data.id, // Razorpay order ID from backend
+          handler: function (response) {
+            alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
+          },
+          prefill: {
+            name: 'Ankit',
+            email: 'ankitkumar0410s@gmail.com',
+            contact: '7717723216',
+          },
+          theme: {
+            color: '#3399cc',
+          },
+        };
+
+        if (window.Razorpay) {
+          const razorpay = new window.Razorpay(options);
+          razorpay.open();
+        } else {
+          alert('Razorpay is not initialized');
+        }
+      } else {
+        alert('Payment creation failed');
+      }
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      alert('An error occurred while creating the payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center space-y-4 p-4 bg-gray-50 rounded-lg shadow-md">
+      <button
+        onClick={handlePayment}
+        disabled={loading}
+        className="w-32 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition duration-200"
+      >
+        {loading ? 'Processing...' : 'Pay with Razorpay'}
+      </button>
+    </div>
+  );
+};
+
+export default RazorpayButton;
+
+
+
+
+
+import React, { useState, useEffect } from 'react';
+
+const RazorpayButton = ({ amount }) => {
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!window.Razorpay) {
+      alert('Razorpay SDK not loaded');
+      return;
+    }
+    handlePayment(); // Trigger payment on component mount or amount change
+  }, [amount]); // Dependency on amount to trigger when it changes
+
+  const handlePayment = async () => {
+    if (amount <= 0) {
+      alert('Amount should be greater than 0');
+      return;
+    }
+
+    setLoading(true); // Set loading to true when payment starts
+    
+    const amountInPaisa =   Math.round(amount); 
+    try {
+      // Send a request to your backend to create a Razorpay order
+      const response = await fetch('http://localhost:5002/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: amountInPaisa }),
+      });
+
+      const data = await response.json();
+
+      if (data.id) {
+        // Create a Razorpay instance and open the payment modal
+        const options = {
+          key: 'rzp_test_62lfJDM065Qw88', // Replace with your Razorpay key ID
+          amount: amountInPaisa,
+          currency: 'INR',
+          name: 'Your Company Name',
+          description: 'Test Transaction',
+          image: 'https://your-logo-url.com/logo.png',
+          order_id: data.id, // Razorpay order ID from backend
+          handler: function (response) {
+            alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
+          },
+          prefill: {
+            name: 'Ankit',
+            email: 'ankitkumar0410s@gmail.com',
+            contact: '7717723216',
+          },
+          theme: {
+            color: '#3399cc',
+          },
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      } else {
+        alert('Payment creation failed');
+      }
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      alert('An error occurred while creating the payment');
+    } finally {
+      setLoading(false); // Reset loading state after processing
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center space-y-4 p-4 bg-gray-50 rounded-lg shadow-md">
+      {loading && <p>Processing payment...</p>} {/* Show loading message when payment is processing */}
+    </div>
+  );
+};
+
+export default RazorpayButton;
+
+
+
+
+import React, { useContext, useState } from "react";
+import { CartContext } from "../App";
+import { FaLeaf } from "react-icons/fa"; // Veg Icon
+import { GiChickenLeg } from "react-icons/gi"; // Non-Veg Icon
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux"; // Import useSelector
+import { toogleLogin } from "../utils/popupSlice";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import the toast styles
+import RazorpayButton from "./RazorpayButton";
+
+const Cart = () => {
+  const { cartData, setCartData } = useContext(CartContext);
+
+  // Handle quantity increment
+  const incrementQuantity = (id) => {
+    setCartData((prevCart) =>
+      prevCart.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  // Handle quantity decrement
+  const decrementQuantity = (id) => {
+    setCartData(
+      (prevCart) =>
+        prevCart
+          .map((item) =>
+            item.id === id && item.quantity > 1
+              ? { ...item, quantity: item.quantity - 1 }
+              : item
+          )
+          .filter((item) => item.quantity > 0) // Remove if quantity is 0
+    );
+  };
+
+  // Handle remove item from cart
+  const removeItem = (id) => {
+    setCartData((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
+
+  // Calculate total price
+  const totalPrice = cartData.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+
+  // Calculate GST (5%)
+  const gstAmount = totalPrice * 0.05;
+
+  // Calculate the total price with GST
+  const totalWithGST = totalPrice + gstAmount;
+
+  // To navigate to the main page
+  const navigate = useNavigate();
+
+  const handleGoToMainPage = () => {
+    navigate('/'); // Navigate to the main page ("/")
+  };
+
+  const userData = useSelector((state) => state.authSlice.userData);
+
+  // Add null check for userData and photo
+  const userPhoto = userData?.photo;
+
+  const dispatch = useDispatch();
+
+  // State to conditionally render Razorpay Button
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+
+  const handlePlaceOrder = () => {
+    if (!userData) {
+      dispatch(toogleLogin(true));  // Open login popup if user is not logged in
+      toast.warning("Login kr le bhai!");
+      return;
+    }
+
+    // Order placement logic
+    console.log("Order placed successfully!");
+    toast.info("Udhari nahi chalega bhai, pehle bata rhe!");
+
+    // Set state to render RazorpayButton
+    setIsOrderPlaced(true);
+  };
+
+  return (
+    <div className="p-4 bg-gray-50 min-h-screen">
+      {/* Empty Cart Message */}
+      {cartData.length === 0 ? (
+        <div className="bg-white w-full">
+          <div className="flex items-center justify-center">
+            <img
+              src="/empty.png"
+              alt="empty"
+              style={{ width: '400px', height: '500px' }}
+            />
+          </div>
+
+          {/* Button to navigate to the main page */}
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleGoToMainPage}
+              className="bg-orange-600 text-white px-8 py-2 rounded-lg shadow-lg hover:bg-orange-700 transition"
+            >
+              See restaurant near you
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Cart Items */}
+          {cartData.map(
+            ({ id, name, price, quantity, imageId, isVeg }) => (
+              <div
+                key={id}
+                className="flex items-center bg-white p-4 rounded-lg shadow-md"
+              >
+                {/* Item Image */}
+                <img
+                  src={
+                    imageId
+                      ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300,h_300,c_fit/${imageId}`
+                      : "https://via.placeholder.com/100"
+                  }
+                  alt={name}
+                  className="w-20 h-20 rounded-lg object-cover"
+                />
+
+                {/* Item Details */}
+                <div className="ml-4 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold">{name}</h3>
+                    {isVeg ? (
+                      <FaLeaf className="text-green-600" size={16} />
+                    ) : (
+                      <GiChickenLeg className="text-red-600" size={16} />
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">₹{price / 100} each</p>
+                  <p className="text-sm font-bold mt-1">
+                    Total: ₹{(price * quantity) / 100}
+                  </p>
+                </div>
+
+                {/* Quantity Controls */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    className="bg-gray-200 text-gray-800 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition"
+                    onClick={() => decrementQuantity(id)}
+                  >
+                    -
+                  </button>
+                  <span className="text-lg font-bold">{quantity}</span>
+                  <button
+                    className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-green-700 transition"
+                    onClick={() => incrementQuantity(id)}
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Remove Item */}
+                <button
+                  className="ml-4 text-red-600 hover:text-red-800"
+                  onClick={() => removeItem(id)}
+                >
+                  Remove
+                </button>
+              </div>
+            )
+          )}
+
+          {/* Total Price Section */}
+          <div className="mt-6 text-right">
+            <h3 className="text-xl font-bold">Subtotal: ₹{totalPrice / 100}</h3>
+            <h3 className="text-lg text-gray-500">GST (5%): ₹{gstAmount / 100}</h3>
+            <h3 className="text-xl font-bold mt-4">Final Total: ₹{totalWithGST / 100}</h3>
+
+            <button 
+              onClick={handlePlaceOrder} 
+              className="bg-green-600 text-white px-6 py-2 mt-2 rounded-lg font-medium hover:bg-green-700 transition"
+            >
+              Proceed to Checkout
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Conditionally render RazorpayButton after order is placed */}
+      {isOrderPlaced && <RazorpayButton amount={totalWithGST / 100} />}
+    </div>
+  );
+};
+
+export default Cart;
+
+
+
+
+
+
+
+
+import React, { useContext, useEffect, useState } from "react";
+import {
+  FaRegArrowAltCircleLeft,
+  FaRegArrowAltCircleRight,
+} from "react-icons/fa";
+import WhatOnMind from "./WhatOnMind";
+import TopRestaurant from "./TopRestaurant";
+import OnlineFoodDelivery from "./OnlineFoodDelivery";
+import { Coordinates } from "../App"; // Adjust the path
+import { useSelector } from "react-redux";
+
+const Body = () => {
+  const [topRestaurantData, setRestaurantData] = useState([]);
+  const [onYourMind, setonYourMind] = useState([]);
+  const [topResTitle, setTopResTitle] = useState("");
+  const [onlineTitle, setOnlineTitle] = useState("");
+  const [data, setData] = useState({});
+
+  const {
+    coord: { lat, lng },
+  } = useContext(Coordinates);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        `/api/dapi/restaurants/list/v5?lat=${lat}&lng=${lng}&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING`
+      );
+      const result = await response.json();
+
+      setTopResTitle(result?.data?.cards[1]?.card?.card?.header?.title || "");
+      // let mainData=(result?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle
+      // ?.restaurants || [])
+      setOnlineTitle(result?.data?.cards[2]?.card?.card?.title || "");
+
+      setData(result.data || {});
+
+      setRestaurantData(
+        result?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle
+          ?.restaurants || []
+      );
+      setonYourMind(result?.data?.cards[0]?.card?.card?.imageGridCards?.info || []);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+      setRestaurantData([]);
+      setonYourMind([]);
+      setData({});
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [lat, lng]);
+
+  const filterVal = useSelector((state) => state?.filterSlice?.filterVal);
+
+  const filteredData = Array.isArray(topRestaurantData)
+    ? topRestaurantData.filter((item) => {
+        if (!filterVal) return true;
+
+        switch (filterVal) {
+          case "Ratings 4.0+":
+            return item?.info?.avgRating > 4;
+          case "Rs. 300-Rs. 600":
+            return (
+              item?.info?.costForTwo?.slice(1, 4) >= "300" &&
+              item?.info?.costForTwo?.slice(1, 4) <= "600"
+            );
+          case "Offers":
+            return item?.info?.aggregatedDiscountInfoV3 !== undefined;
+          case "Less than Rs. 300":
+            return item?.info?.costForTwo?.slice(1, 4) < "300";
+          default:
+            return true;
+        }
+      })
+    : [];
+
+  if (data.communication || data.tid === "") {
+    return (
+      <div className="flex mt-52 gap-4 overflow-hidden justify-center items-center flex-col">
+        <img
+          className="w-72"
+          src="https://media.tenor.com/lLbmBFJfW3UAAAAM/crying-sad.gif"
+          alt="Crying GIF"
+        />
+        <div>
+          <audio
+            src="/Aadi Aadi Meme Audio Download.m4r"
+            controls
+            autoPlay
+          ></audio>
+        </div>
+        <h1 className="text-3xl">Bhai Khud se bana kar kha le😗😗</h1>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full overflow-hidden">
+      <div className=" w-[90%] md:w-[80%] mx-auto mt-4 overflow-hidden">
+        <WhatOnMind data={onYourMind}></WhatOnMind>
+        <hr className="mt-7 border-t-1" />
+        <TopRestaurant
+          data={topRestaurantData}
+          title={topResTitle}
+        ></TopRestaurant>
+        <hr className="mt-5 border-t-1" />
+        <OnlineFoodDelivery
+          data={filterVal ? filteredData : topRestaurantData}
+          title={onlineTitle}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Body;
