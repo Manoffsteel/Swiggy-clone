@@ -95,8 +95,9 @@ const Head = () => {
     if (val === "") return;
     try {
       const res = await axios.get(
-        `/api/dapi/misc/place-autocomplete?input=${val}`
+        'https://www.swiggy.com/dapi/misc/place-autocomplete?input=${val}`
       );
+      // `/api/dapi/misc/place-autocomplete?input=${val}`
       setSearchResult(res.data.data);
     } catch (error) {
       console.error("Error fetching search results", error);
