@@ -21,7 +21,7 @@ const RazorpayButton = ({ amount }) => {
 
     const amountInPaisa = Math.round(amount); 
     try {
-      const response = await fetch("https://swiggy-clone-4.onrender.com", {
+      const response = await fetch("https://swiggy-clone-4.onrender.com/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
