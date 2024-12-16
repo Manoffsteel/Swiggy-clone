@@ -29,7 +29,7 @@ const Search = () => {
   async function fetchDishes() {
     try {
       const response = await axios.get(
-        `https://cors-anywhere.herokuapp.com/https://www.swiggy.com/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117`
+        `https://www.swiggy.com/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117`
       );
       // `/api/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117`
 
@@ -45,7 +45,7 @@ const Search = () => {
   async function fetchRestaurantData() {
     try {
       const response = await axios.get(
-       `https://cors-anywhere.herokuapp.com/https://www.swiggy.com/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117&selectedPLTab=RESTAURANT`
+       `https://www.swiggy.com/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117&selectedPLTab=RESTAURANT`
       );
       //   `/api/dapi/restaurants/search/v3?lat=${lat}&lng=${lng}&str=${searchQuery}&trackingId=3e74e22a-60fc-d830-41cc-1e2c0a9b0ae5&submitAction=ENTER&queryUniqueId=74a12a7c-7fc3-9067-30e6-a6054f0d9117&selectedPLTab=RESTAURANT`
 
