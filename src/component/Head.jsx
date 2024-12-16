@@ -95,7 +95,7 @@ const Head = () => {
     if (val === "") return;
     try {
       const res = await axios.get(
-        `https://cors-anywhere.herokuapp.com/https://www.swiggy.com/dapi/misc/place-autocomplete?input=${val}`
+        `https://www.swiggy.com/dapi/misc/place-autocomplete?input=${val}`
       );
       // `/api/dapi/misc/place-autocomplete?input=${val}`
       setSearchResult(res.data.data);
@@ -109,7 +109,7 @@ const Head = () => {
     dispatch(setPopupVisibility(false));
     try {
       const res = await axios.get(
-        `https://cors-anywhere.herokuapp.com/https://www.swiggy.com/dapi/misc/address-recommend?place_id=${id}`
+        `https://www.swiggy.com/dapi/misc/address-recommend?place_id=${id}`
       );
       //  `/api/dapi/misc/address-recommend?place_id=${id}`
       setCoord({
