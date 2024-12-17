@@ -48,7 +48,7 @@ const RestaurantMenu = () => {
   async function fetchMenu() {
     try {
       const response = await axios.get(
-        `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${lat}&lng=${lng}&restaurantId=${mainid}&catalog_qa=undefined&submitAction=ENTER`
+        `https://cors-by-codethread-for-swiggy.vercel.app/cors/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${lat}&lng=${lng}&restaurantId=${mainid}&catalog_qa=undefined&submitAction=ENTER`
       );
       // `/api/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${lat}&lng=${lng}&restaurantId=${mainid}&catalog_qa=undefined&submitAction=ENTER`
 
