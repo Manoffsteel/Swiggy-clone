@@ -5,6 +5,7 @@ import path from 'path';  // Import path for resolving aliases
 // Vite configuration
 export default defineConfig({
   plugins: [react()],
+ 
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),  // Alias for the 'src' folder
